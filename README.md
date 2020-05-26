@@ -172,6 +172,8 @@ module.exports = {
 };
 ```
 
+---
+
 ## Criando a aplicação
 ### Criando Rotas
 Instalar o pacote `react-router-dom`
@@ -206,6 +208,41 @@ Criar o arquivo `src/routes/index.tsx` e adicionar o pacote de tipagem
 yarn add -D @types/react-router-dom
 ```
 
+Importar o `Switch` que vai permitir que apenas uma rota seja renderizada e o `Route` que vai redirecionar para a página dependendo da rota
+```tsx
+import React from 'react';
+import { Switch, Route } from 'react-router-dom';
+
+import Dashboard from '../pages/Dashboard';
+import Repository from '../pages/Repository';
+
+const Routes: React.FC = () => (
+  <Switch>
+    <Route path="/" exact component={Dashboard} />
+    <Route path="/repository" component={Repository} />
+  </Switch>
+)
+
+export default Routes;
+```
+
+E em `src/App.tsx`, importar o `BrowserRouter` que vai entender o `path` com `"/"` passado no navegador
+```tsx
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+
+import Routes from './routes';
+
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <Routes />
+    </BrowserRouter>
+  );
+}
+
+export default App;
+```
 
 ### Utilizando Styled Components
 
