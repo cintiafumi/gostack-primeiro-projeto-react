@@ -245,6 +245,98 @@ export default App;
 ```
 
 ### Utilizando Styled Components
+Adicionar o pacote `styled-components` para estilizar o componente de maneira escopada
+```bash
+yarn add styled-components
+yarn add -D @types/styled-components
+```
+
+Instalar a extensão do styled-components do VSCode.
+
+Ao invés de usarmos um arquivo `.css` que acaba sendo global, iremos utilizar um arquivo `.ts` que deixara a estilização somente no escopo aplicado. Criamos então um arquivo `styles.ts` e estilizamos com `template literals`
+```ts
+import styled from 'styled-components';
+
+export const Title = styled.h1`
+  font-size: 48px;
+  color: #3A3A3A;
+`;
+```
+
+E utilizamos esse componente estilizado dessa forma
+```tsx
+import React from 'react';
+
+import { Title } from './styles';
+
+const Dashboard: React.FC = () => {
+  return <Title>Dashboard</Title>
+}
+
+export default Dashboard;
+```
+
+O `style-components` permite usar a mesma sintaxe para React e React Native.
+
+Para criar um estilo global, criar um arquivo `src/styles/global.ts`
+```ts
+import { createGlobalStyle } from 'styled-components';
+
+import githubBackground from '../assets/github-background.svg';
+
+export default createGlobalStyle`
+  * {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #F0F0F5 url(${githubBackground}) no-repeat 70% top;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body, input, button {
+    font: 16px Roboto, sans-serif;
+  }
+
+  #root {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+`;
+```
+
+E importar no `src/App.tsx`
+```tsx
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+
+import GlobalStyles from './styles/global'
+import Routes from './routes';
+
+const App: React.FC = () => {
+  return (
+    <>
+      <BrowserRouter>
+        <Routes />
+      </BrowserRouter>
+      <GlobalStyles />
+    </>
+  );
+}
+
+export default App;
+```
+
+Importo a fonte Roboto do Google fonts e coloco na head do `index.html`
+
 
 ### Estilizando Dashboard
 
