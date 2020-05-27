@@ -337,8 +337,172 @@ export default App;
 
 Importo a fonte Roboto do Google fonts e coloco na head do `index.html`
 
-
 ### Estilizando Dashboard
+Conceito do styled-components é como dos pré-processadores, então é possível encadear internamente os estilos.
+
+Adicionar o pacote `polished` para trabalhar com as cores
+```bash
+yarn add polished
+```
+
+Adicionar o pacote `react-icons`
+```bash
+yarn add react-icons
+```
+
+`src/pages/Dashboard/index.tsx`
+```tsx
+import React from 'react';
+import { FiChevronRight } from 'react-icons/fi';
+
+import logoImg from '../../assets/logo.svg';
+import { Title, Form, Repositories } from './styles';
+
+const Dashboard: React.FC = () => (
+  <>
+    <img src={logoImg} alt="Github Explorer" />
+    <Title>Explore repositórios no Github</Title>
+
+    <Form>
+      <input placeholder="Digite o nome do repositório" />
+      <button type="submit">Pesquisar</button>
+    </Form>
+
+    <Repositories>
+      <a href="#">
+        <img src="https://avatars1.githubusercontent.com/u/34029172?s=460&u=87514f974accb262acd3ed1f3cd9553684b4d926&v=4" alt="Cintia Fumi"/>
+
+        <div>
+          <strong>rocketseat/unform</strong>
+          <p>Easy peasy highlt scalable ReactJS & React Native forms!</p>
+        </div>
+
+        <FiChevronRight size={20} />
+      </a>
+      <a href="#">
+        <img src="https://avatars1.githubusercontent.com/u/34029172?s=460&u=87514f974accb262acd3ed1f3cd9553684b4d926&v=4" alt="Cintia Fumi"/>
+
+        <div>
+          <strong>rocketseat/unform</strong>
+          <p>Easy peasy highlt scalable ReactJS & React Native forms!</p>
+        </div>
+
+        <FiChevronRight size={20} />
+      </a>
+      <a href="#">
+        <img src="https://avatars1.githubusercontent.com/u/34029172?s=460&u=87514f974accb262acd3ed1f3cd9553684b4d926&v=4" alt="Cintia Fumi"/>
+
+        <div>
+          <strong>rocketseat/unform</strong>
+          <p>Easy peasy highlt scalable ReactJS & React Native forms!</p>
+        </div>
+
+        <FiChevronRight size={20} />
+      </a>
+    </Repositories>
+  </>
+)
+
+export default Dashboard;
+```
+
+`src/pages/Dashboard/styles.ts`
+```ts
+import styled from 'styled-components';
+import { shade } from 'polished';
+
+export const Title = styled.h1`
+  font-size: 48px;
+  color: #3A3A3A;
+  max-width: 450px;
+  line-height: 56px;
+  margin-top: 80px;
+`;
+
+export const Form = styled.form`
+  margin-top: 40px;
+  max-width: 700px;
+  display: flex;
+
+  input {
+    flex: 1;
+    height: 70px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 5px 0 0 5px;
+    color: #3A3A3A;
+
+    &::placeholder {
+      color: #a8b3b3;
+    }
+  }
+
+  button {
+    width: 210px;
+    height: 70px;
+    background: #04D361;
+    border-radius: 0 5px 5px 0;
+    border: 0;
+    font-weight: bold;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: ${shade(0.2, '#04D361')};
+    }
+  }
+`;
+
+export const Repositories = styled.div`
+  margin-top: 80px;
+  max-width: 700px;
+
+  a {
+    background: #fff;
+    border-radius: 5px;
+    width: 100%;
+    padding: 24px;
+    display: block;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateX(10px);
+    }
+
+    & + a {
+      margin-top: 16px;
+    }
+
+    img {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+    }
+
+    div {
+      margin-left: 16px;
+
+      strong {
+        font-size: 20px;
+        color: #3D3D4D;
+      }
+
+      p {
+        font-size: 18px;
+        color: #A8A8B3;
+        margin-top: 4px;
+      }
+    }
+
+    svg {
+      margin-left: auto;
+      color: #cbcbd6;
+    }
+  }
+`;
+```
 
 ### Conectando a API
 
