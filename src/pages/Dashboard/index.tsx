@@ -1,52 +1,90 @@
-import React from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
 
 import logoImg from '../../assets/logo.svg';
-import { Title, Form, Repositories } from './styles';
+import { Title, Form, Repositories, Error } from './styles';
 
-const Dashboard: React.FC = () => (
-  <>
-    <img src={logoImg} alt="Github Explorer" />
-    <Title>Explore repositórios no Github</Title>
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  }
+}
 
-    <Form>
-      <input placeholder="Digite o nome do repositório" />
-      <button type="submit">Pesquisar</button>
-    </Form>
+const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [inputError, setInputError] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>(() => {
+    const storageRepositories = localStorage.getItem('@GithubExplorer:repositories');
 
-    <Repositories>
-      <a href="#">
-        <img src="https://avatars1.githubusercontent.com/u/34029172?s=460&u=87514f974accb262acd3ed1f3cd9553684b4d926&v=4" alt="Cintia Fumi"/>
+    if (storageRepositories) {
+      return JSON.parse(storageRepositories);
+    }
 
-        <div>
-          <strong>rocketseat/unform</strong>
-          <p>Easy peasy highlt scalable ReactJS & React Native forms!</p>
-        </div>
+    return [];
+  });
 
-        <FiChevronRight size={20} />
-      </a>
-      <a href="#">
-        <img src="https://avatars1.githubusercontent.com/u/34029172?s=460&u=87514f974accb262acd3ed1f3cd9553684b4d926&v=4" alt="Cintia Fumi"/>
+  useEffect(() => {
+    localStorage.setItem('@GithubExplorer:repositories', JSON.stringify(repositories))
+  }, [repositories]);
 
-        <div>
-          <strong>rocketseat/unform</strong>
-          <p>Easy peasy highlt scalable ReactJS & React Native forms!</p>
-        </div>
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
 
-        <FiChevronRight size={20} />
-      </a>
-      <a href="#">
-        <img src="https://avatars1.githubusercontent.com/u/34029172?s=460&u=87514f974accb262acd3ed1f3cd9553684b4d926&v=4" alt="Cintia Fumi"/>
+    if (!newRepo) {
+      setInputError('Digite o autor/nome do repositório');
+      return;
+    }
 
-        <div>
-          <strong>rocketseat/unform</strong>
-          <p>Easy peasy highlt scalable ReactJS & React Native forms!</p>
-        </div>
+    try {
+      const response = await api.get<Repository>(`repos/${newRepo}`);
 
-        <FiChevronRight size={20} />
-      </a>
-    </Repositories>
-  </>
-)
+      const repository = response.data;
+
+      setRepositories([...repositories, repository]);
+      setNewRepo('');
+      setInputError('');
+    } catch (err) {
+      setInputError('Erro na busca do repositório');
+    }
+  }
+
+  return (
+    <>
+      <img src={logoImg} alt="Github Explorer" />
+      <Title>Explore repositórios no Github</Title>
+
+      <Form hasError={!!inputError} onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+          placeholder="Digite o nome do repositório"
+        />
+        <button type="submit">Pesquisar</button>
+      </Form>
+
+      { inputError && <Error>{inputError}</Error> }
+
+      <Repositories>
+        {repositories.map(repository => (
+          <Link key={repository.full_name} to={`/repositories/${repository.full_name}`}>
+            <img src={repository.owner.avatar_url} alt={repository.owner.login} />
+
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
+
+            <FiChevronRight size={20} />
+          </Link>
+        ))}
+      </Repositories>
+    </>
+  )
+}
 
 export default Dashboard;

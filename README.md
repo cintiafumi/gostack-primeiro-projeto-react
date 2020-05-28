@@ -505,13 +505,295 @@ export const Repositories = styled.div`
 ```
 
 ### Conectando a API
+Instalar o axios
+```bash
+yarn add axios
+```
+
+Criar o arquivo `src/services/api.ts`
+```ts
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'https://api.github.com'
+})
+
+export default api;
+```
+
+Importar `api` e `useState` em `src/pages/Dashboard/index.tsx` e criar a estrutura para receber os repositórios da api. Precisamos também criar a função `handleAddRepository` para adicionar um novo repositório.
+
+Adicionar no `eslintrc.json`
+```json
+  "rules": {
+
+    "@typescript-eslint/explicit-function-return-type": [
+      "error",
+      {
+        "allowExpressions": true
+      }
+    ],
+
+  }
+```
+
+Criar a tipagem somente do que iremos utilizar
+```tsx
+import React, { useState, FormEvent } from 'react';
+import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
+
+import logoImg from '../../assets/logo.svg';
+import { Title, Form, Repositories } from './styles';
+
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  }
+}
+
+const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+
+    const response = await api.get<Repository>(`repos/${newRepo}`);
+
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
+  }
+
+  return (
+    <>
+      <img src={logoImg} alt="Github Explorer" />
+      <Title>Explore repositórios no Github</Title>
+
+      <Form onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+          placeholder="Digite o nome do repositório"
+        />
+        <button type="submit">Pesquisar</button>
+      </Form>
+
+      <Repositories>
+        {repositories.map(repository => (
+          <a key={repository.full_name} href="#">
+            <img src={repository.owner.avatar_url} alt={repository.owner.login} />
+
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
+
+            <FiChevronRight size={20} />
+          </a>
+        ))}
+      </Repositories>
+    </>
+  )
+}
+
+export default Dashboard;
+```
 
 ### Lidando com erros
+Apresentar erro quando input estiver vazio ou quando não existir repositório com o nome buscado. Além disso, passar por props no component de `styled-components` e alterar o `css` a partir dessa props.
+```tsx
+import React, { useState, FormEvent } from 'react';
+import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
+
+import logoImg from '../../assets/logo.svg';
+import { Title, Form, Repositories, Error } from './styles';
+
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  }
+}
+
+const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [inputError, setInputError] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+
+    if (!newRepo) {
+      setInputError('Digite o autor/nome do repositório');
+      return;
+    }
+
+    try {
+      const response = await api.get<Repository>(`repos/${newRepo}`);
+
+      const repository = response.data;
+
+      setRepositories([...repositories, repository]);
+      setNewRepo('');
+      setInputError('');
+    } catch (err) {
+      setInputError('Erro na busca do repositório');
+    }
+
+  }
+
+  return (
+    <>
+
+      <Form hasError={!!inputError} onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+          placeholder="Digite o nome do repositório"
+        />
+        <button type="submit">Pesquisar</button>
+      </Form>
+
+      { inputError && <Error>{inputError}</Error> }
+
+
+    </>
+  )
+}
+
+export default Dashboard;
+```
+
+```ts
+import styled, { css } from 'styled-components';
+
+interface FormProps {
+  hasError: boolean;
+}
+
+export const Form = styled.form<FormProps>`
+  margin-top: 40px;
+  max-width: 700px;
+  display: flex;
+
+  input {
+    flex: 1;
+    height: 70px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 5px 0 0 5px;
+    color: #3A3A3A;
+    border: 2px solid #fff;
+    border-right: 0;
+
+    ${(props) => props.hasError && css`
+      border-color: #c53030;
+    `}
+
+    &::placeholder {
+      color: #a8b3b3;
+    }
+  }
+
+  button {
+    width: 210px;
+    height: 70px;
+    background: #04D361;
+    border-radius: 0 5px 5px 0;
+    border: 0;
+    font-weight: bold;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: ${shade(0.2, '#04D361')};
+    }
+  }
+`;
+
+export const Error = styled.span`
+  display: block;
+  color: #c53030;
+  margin-top: 8px;
+`;
+```
 
 ### Salvando no Storage
+```tsx
+
+const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [inputError, setInputError] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>(() => {
+    const storageRepositories = localStorage.getItem('@GithubExplorer:repositories');
+
+    if (storageRepositories) {
+      return JSON.parse(storageRepositories);
+    }
+
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('@GithubExplorer:repositories', JSON.stringify(repositories))
+  }, [repositories]);
+
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+
+    if (!newRepo) {
+      setInputError('Digite o autor/nome do repositório');
+      return;
+    }
+
+    try {
+      const response = await api.get<Repository>(`repos/${newRepo}`);
+
+      const repository = response.data;
+
+      setRepositories([...repositories, repository]);
+      setNewRepo('');
+      setInputError('');
+    } catch (err) {
+      setInputError('Erro na busca do repositório');
+    }
+  }
+
+}
+```
 
 ### Navegando entre rotas
+```tsx
+import { Link } from 'react-router-dom';
+
+  return (
+
+        {repositories.map(repository => (
+          <Link key={repository.full_name} to={`/repositories/${repository.full_name}`}>
+            <img src={repository.owner.avatar_url} alt={repository.owner.login} />
+
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
+
+            <FiChevronRight size={20} />
+          </Link>
+        ))}
+      </Repositories>
+
+  )
+```
 
 ### Estilizando Detalhe
+
 
 ### Listando issues da API
