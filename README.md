@@ -793,6 +793,16 @@ import { Link } from 'react-router-dom';
   )
 ```
 
+`src/routes/index.tsx`
+```tsx
+const Routes: React.FC = () => (
+  <Switch>
+    <Route path="/" exact component={Dashboard} />
+    <Route path="/repositories/:repository+" component={Repository} />
+  </Switch>
+)
+```
+
 ### Estilizando Detalhe
 
 
